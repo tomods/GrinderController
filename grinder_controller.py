@@ -41,13 +41,9 @@ class GrinderController:
 
     class IdleState(State):
         def run(self):
-            voltage = self._context.hw.read_voltage()
-            button_state = self._context.hw.read_button_state()
-            print("Battery voltage: {}".format(voltage))
-            print("Button state: {}".format(button_state))
-            if button_state == GrinderController.ButtonState.PRESSED:
+            if self._context.button_state == GrinderController.ButtonState.PRESSED:
                 self._context.state = GrinderController.GrindBeginState()
-            elif self._context.hw.should_start_charging(voltage):
+            elif self._context.hw.should_start_charging(self._context.voltage):
                 self._context.state = GrinderController.ChargingState()
 
         def on_enter(self):
@@ -59,10 +55,9 @@ class GrinderController:
         _grind_start_time = None
 
         def run(self):
-            button_state = self._context.hw.read_button_state()
-            print("Button state: {}".format(button_state))
             time_passed = time.ticks_diff(time.ticks_ms(), self._grind_start_time)
-            if time_passed < AUTOGRIND_TIMEOUT_MS and button_state == GrinderController.ButtonState.RELEASED:
+            if time_passed < AUTOGRIND_TIMEOUT_MS and \
+                    self._context.button_state == GrinderController.ButtonState.RELEASED:
                 self._context.state = GrinderController.AutoGrindState(self._grind_start_time)
             elif time_passed >= AUTOGRIND_TIMEOUT_MS:
                 self._context.state = GrinderController.ManualGrindState()
@@ -81,27 +76,21 @@ class GrinderController:
             self._grind_start_time = start_time
 
         def run(self):
-            voltage = self._context.hw.read_voltage()
-            button_state = self._context.hw.read_button_state()
-            print("Battery voltage: {}".format(voltage))
-            print("Button state: {}".format(button_state))
             time_passed = time.ticks_diff(time.ticks_ms(), self._grind_start_time)
-            if button_state == GrinderController.ButtonState.PRESSED:
+            if self._context.button_state == GrinderController.ButtonState.PRESSED:
                 self._context.state = GrinderController.AutoGrindStopState()
             elif time_passed > AUTOGRIND_SAFETY_STOP_MS:
                 self._context.state = GrinderController.IdleState()
-            elif self._context.hw.should_stop_grinding(voltage, self._autogrind_start_voltage):
+            elif self._context.hw.should_stop_grinding(self._context.voltage, self._autogrind_start_voltage):
                 self._context.state = GrinderController.IdleState()
 
         def on_enter(self):
             print("Entering automatic grinding state")
-            self._autogrind_start_voltage = self._context.hw.read_voltage()
+            self._autogrind_start_voltage = self._context.voltage()
 
     class AutoGrindStopState(State):
         def run(self):
-            button_state = self._context.hw.read_button_state()
-            print("Button state: {}".format(button_state))
-            if button_state == GrinderController.ButtonState.RELEASED:
+            if self._context.button_state == GrinderController.ButtonState.RELEASED:
                 self._context.state = GrinderController.IdleState()
 
         def on_enter(self):
@@ -110,11 +99,7 @@ class GrinderController:
 
     class ManualGrindState(State):
         def run(self):
-            voltage = self._context.hw.read_voltage()
-            button_state = self._context.hw.read_button_state()
-            print("Battery voltage: {}".format(voltage))
-            print("Button state: {}".format(button_state))
-            if button_state == GrinderController.ButtonState.RELEASED:
+            if self._context.button_state == GrinderController.ButtonState.RELEASED:
                 self._context.state = GrinderController.IdleState()
 
         def on_enter(self):
@@ -122,13 +107,9 @@ class GrinderController:
 
     class ChargingState(State):
         def run(self):
-            voltage = self._context.hw.read_voltage()
-            button_state = self._context.hw.read_button_state()
-            print("Battery voltage: {}".format(voltage))
-            print("Button state: {}".format(button_state))
-            if button_state == GrinderController.ButtonState.PRESSED:
+            if self._context.button_state == GrinderController.ButtonState.PRESSED:
                 self._context.state = GrinderController.GrindBeginState()
-            if self._context.hw.should_stop_charging(voltage):
+            if self._context.hw.should_stop_charging(self._context.voltage):
                 self._context.state = GrinderController.IdleState()
 
         def on_enter(self):
@@ -138,13 +119,26 @@ class GrinderController:
 
     _state = None
     _hw = None
+    _button_state = None
+    _voltage = None
 
     def __init__(self, hw):
         self._hw = hw
         self.state = GrinderController.IdleState()
 
     def run(self):
+        self._voltage = self._hw.read_voltage()
+        self._button_state = self._hw.read_button_state()
+        print("Battery voltage: {}; Button state: {}".format(self._voltage, self._button_state))
         self._state.run()
+
+    @property
+    def button_state(self):
+        return self._button_state
+
+    @property
+    def voltage(self):
+        return self._voltage
 
     @property
     def hw(self):
