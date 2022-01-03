@@ -64,7 +64,7 @@ class AutoGrindState(State):
 
     def run(self):
         if self._context.button_pressed:
-            self._context.state = AutoGrindStopState()
+            self._context.state = ManualGrindState()
         elif GrinderHardware.should_stop_grinding(self._context.voltage, self._autogrind_start_voltage):
             self._context.state = IdleState()
         else:
@@ -75,16 +75,6 @@ class AutoGrindState(State):
     def on_enter(self):
         print("Entering automatic grinding state")
         self._autogrind_start_voltage = self._context.voltage()
-
-
-class AutoGrindStopState(State):
-    def run(self):
-        if not self._context.button_pressed:
-            self._context.state = IdleState()
-
-    def on_enter(self):
-        print("Entering automatic grinding stop state")
-        self._context.hw.set_motor_state(GrinderHardware.MotorState.STOPPED)
 
 
 class ManualGrindState(State):
