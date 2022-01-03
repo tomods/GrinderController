@@ -1,5 +1,6 @@
 from grinder_controller import GrinderController
 from machine import Pin, ADC
+import time
 
 BUTTON_PIN = 3
 JACK_FET_PIN = 1
@@ -11,6 +12,8 @@ VOLTAGE_THRESH_HIGH = 3000
 
 AUTOGRIND_STOP_VOLTAGE_FACTOR = 1.1
 
+DEBOUNCE_TIME_MS = 20
+
 
 class GrinderHardware:
     def __init__(self):
@@ -19,9 +22,21 @@ class GrinderHardware:
         self._motor_fet = Pin(MOTOR_FET_PIN, Pin.OUT, value=1)
         self._adc = ADC(Pin(VOLTAGE_PIN))
 
+        self._prev_button_state = 1
+        self._button_change_time = time.ticks_ms()
+        self._debounced_button_state = 1
+
     def _debounce_button(self, pin_state):
-        # TODO Actually debounce!
-        return GrinderController.ButtonState.PRESSED if pin_state == 0 else GrinderController.ButtonState.RELEASED
+        if pin_state != self._prev_button_state:
+            self._prev_button_state = pin_state
+            self._button_change_time = time.ticks_ms()
+        else:
+            time_passed = time.ticks_diff(time.ticks_ms(), self._button_change_time)
+            if time_passed > DEBOUNCE_TIME_MS:
+                self._debounced_button_state = pin_state
+
+        return GrinderController.ButtonState.PRESSED if self._debounced_button_state == 0 \
+            else GrinderController.ButtonState.RELEASED
 
     @staticmethod
     def _adc_to_voltage(adc_val):
