@@ -1,5 +1,6 @@
 from grinder_controller import GrinderController
 from machine import Pin, ADC
+from collections import deque
 import time
 
 BUTTON_PIN = 3
@@ -13,6 +14,7 @@ VOLTAGE_THRESH_HIGH = 3000
 AUTOGRIND_STOP_VOLTAGE_FACTOR = 1.1
 
 DEBOUNCE_TIME_MS = 20
+VOLTAGE_FILTER_SIZE = 16
 
 
 class GrinderHardware:
@@ -34,26 +36,36 @@ class GrinderHardware:
             return GrinderController.ButtonState.PRESSED if self._debounced_button_state == 0 \
                 else GrinderController.ButtonState.RELEASED
 
+    class Filter:
+        def __init__(self):
+            self._voltage_filter_list = deque(maxlen=VOLTAGE_FILTER_SIZE)
+            self._voltage_filtered = 0
+
+        @staticmethod
+        def _adc_to_voltage(adc_val):
+            # FIXME Maybe actually convert?!
+            return adc_val
+
+        def filter_voltage(self, adc_val):
+            # TODO FIXME Take care of the beginning!!
+            oldest = self._voltage_filter_list.popleft()
+            self._voltage_filter_list.append(adc_val)
+            # FIXME Is it actually clever to not use float here?
+            self._voltage_filtered += (adc_val - oldest) // VOLTAGE_FILTER_SIZE
+
+            return self._adc_to_voltage(self._voltage_filtered)
+
     def __init__(self):
         self._button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
         self._jack_fet = Pin(JACK_FET_PIN, Pin.OUT, value=0)
         self._motor_fet = Pin(MOTOR_FET_PIN, Pin.OUT, value=1)
         self._adc = ADC(Pin(VOLTAGE_PIN))
 
-
         self._debounce = GrinderHardware.Debouncer()
-
-    @staticmethod
-    def _adc_to_voltage(adc_val):
-        # TODO Actually convert!
-        return adc_val
-
-    def _filter_voltage(self, adc_val):
-        # TODO Actually filter!
-        return self._adc_to_voltage(adc_val)
+        self._filter = GrinderHardware.Filter()
 
     def read_voltage(self):
-        return self._filter_voltage(self._adc.read_u16())
+        return self._filter.filter_voltage(self._adc.read_u16())
 
     def read_button_state(self):
         return self._debounce.debounce_button(self._button.value())
