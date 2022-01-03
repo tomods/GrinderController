@@ -27,9 +27,9 @@ class State(ABC):
 
 class IdleState(State):
     def run(self):
-        if self._context.button_state == GrinderHardware.ButtonState.PRESSED:
+        if self._context.button_pressed:
             self._context.state = GrindBeginState()
-        elif self._context.hw.should_start_charging(self._context.voltage):
+        elif GrinderHardware.should_start_charging(self._context.voltage):
             self._context.state = ChargingState()
 
     def on_enter(self):
@@ -43,8 +43,7 @@ class GrindBeginState(State):
 
     def run(self):
         time_passed = time.ticks_diff(time.ticks_ms(), self._grind_start_time)
-        if time_passed < AUTOGRIND_TIMEOUT_MS and \
-                self._context.button_state == GrinderHardware.ButtonState.RELEASED:
+        if time_passed < AUTOGRIND_TIMEOUT_MS and not self._context.button_pressed:
             self._context.state = AutoGrindState(self._grind_start_time)
         elif time_passed >= AUTOGRIND_TIMEOUT_MS:
             self._context.state = ManualGrindState()
@@ -64,9 +63,9 @@ class AutoGrindState(State):
         self._grind_start_time = start_time
 
     def run(self):
-        if self._context.button_state == GrinderHardware.ButtonState.PRESSED:
+        if self._context.button_pressed:
             self._context.state = AutoGrindStopState()
-        elif self._context.hw.should_stop_grinding(self._context.voltage, self._autogrind_start_voltage):
+        elif GrinderHardware.should_stop_grinding(self._context.voltage, self._autogrind_start_voltage):
             self._context.state = IdleState()
         else:
             time_passed = time.ticks_diff(time.ticks_ms(), self._grind_start_time)
@@ -80,7 +79,7 @@ class AutoGrindState(State):
 
 class AutoGrindStopState(State):
     def run(self):
-        if self._context.button_state == GrinderHardware.ButtonState.RELEASED:
+        if not self._context.button_pressed:
             self._context.state = IdleState()
 
     def on_enter(self):
@@ -90,7 +89,7 @@ class AutoGrindStopState(State):
 
 class ManualGrindState(State):
     def run(self):
-        if self._context.button_state == GrinderHardware.ButtonState.RELEASED:
+        if not self._context.button_pressed:
             self._context.state = IdleState()
 
     def on_enter(self):
@@ -99,7 +98,7 @@ class ManualGrindState(State):
 
 class ChargingState(State):
     def run(self):
-        if self._context.button_state == GrinderHardware.ButtonState.PRESSED:
+        if self._context.button_pressed:
             self._context.state = GrindBeginState()
         elif self._context.hw.should_stop_charging(self._context.voltage):
             self._context.state = IdleState()

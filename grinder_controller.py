@@ -28,8 +28,8 @@ class GrinderController:
         self._state.run()
 
     @property
-    def button_state(self) -> GrinderHardware.ButtonState:
-        return self._button_state
+    def button_pressed(self):
+        return self._button_state == GrinderHardware.ButtonState.PRESSED
 
     @property
     def voltage(self):
