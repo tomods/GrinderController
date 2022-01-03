@@ -30,7 +30,7 @@ class GrinderHardware:
         if pin_state != self._prev_button_state:
             self._prev_button_state = pin_state
             self._button_change_time = time.ticks_ms()
-        else:
+        elif pin_state != self._debounced_button_state:
             time_passed = time.ticks_diff(time.ticks_ms(), self._button_change_time)
             if time_passed > DEBOUNCE_TIME_MS:
                 self._debounced_button_state = pin_state
