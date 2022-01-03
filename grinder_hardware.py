@@ -1,5 +1,5 @@
-from grinder_controller import GrinderController
 from machine import Pin, ADC
+from enum import Enum
 from collections import deque
 import time
 
@@ -18,6 +18,18 @@ VOLTAGE_FILTER_SIZE = 16
 
 
 class GrinderHardware:
+    class ButtonState(Enum):
+        PRESSED = 0
+        RELEASED = 1
+
+    class JackState(Enum):
+        ENABLED = 0
+        DISABLED = 1
+
+    class MotorState(Enum):
+        RUNNING = 0
+        STOPPED = 1
+
     class Debouncer:
         def __init__(self):
             self._prev_button_state = 1
@@ -33,8 +45,8 @@ class GrinderHardware:
                 if time_passed > DEBOUNCE_TIME_MS:
                     self._debounced_button_state = pin_state
 
-            return GrinderController.ButtonState.PRESSED if self._debounced_button_state == 0 \
-                else GrinderController.ButtonState.RELEASED
+            return GrinderHardware.ButtonState.PRESSED if self._debounced_button_state == 0 \
+                else GrinderHardware.ButtonState.RELEASED
 
     class Filter:
         def __init__(self):
@@ -71,10 +83,10 @@ class GrinderHardware:
         return self._debounce.debounce_button(self._button.value())
 
     def set_motor_state(self, val):
-        self._motor_fet.value(0 if val == GrinderController.MotorState.RUNNING else 1)
+        self._motor_fet.value(0 if val == GrinderHardware.MotorState.RUNNING else 1)
 
     def set_jack_state(self, val):
-        self._jack_fet.value(0 if val == GrinderController.JackState.ENABLED else 1)
+        self._jack_fet.value(0 if val == GrinderHardware.JackState.ENABLED else 1)
 
     @staticmethod
     def should_stop_charging(current_voltage):
