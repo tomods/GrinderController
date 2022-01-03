@@ -73,13 +73,13 @@ class GrinderHardware:
         self._button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
         self._jack_fet = Pin(JACK_FET_PIN, Pin.OUT, value=0)
         self._motor_fet = Pin(MOTOR_FET_PIN, Pin.OUT, value=1)
-        self._adc = ADC(Pin(VOLTAGE_PIN))
+        self._voltage_adc = ADC(Pin(VOLTAGE_PIN))
 
         self._debounce = GrinderHardware.Debouncer()
         self._filter = GrinderHardware.Filter()
 
     def read_voltage(self):
-        return self._filter.filter_voltage(self._adc.read_u16())
+        return self._filter.filter_voltage(self._voltage_adc.read_u16())
 
     def read_button_state(self) -> ButtonState:
         return self._debounce.debounce_button(self._button.value())
