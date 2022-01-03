@@ -64,13 +64,14 @@ class GrinderController:
             self._grind_start_time = start_time
 
         def run(self):
-            time_passed = time.ticks_diff(time.ticks_ms(), self._grind_start_time)
             if self._context.button_state == GrinderHardware.ButtonState.PRESSED:
                 self._context.state = GrinderController.AutoGrindStopState()
-            elif time_passed > AUTOGRIND_SAFETY_STOP_MS:
-                self._context.state = GrinderController.IdleState()
             elif self._context.hw.should_stop_grinding(self._context.voltage, self._autogrind_start_voltage):
                 self._context.state = GrinderController.IdleState()
+            else:
+                time_passed = time.ticks_diff(time.ticks_ms(), self._grind_start_time)
+                if time_passed > AUTOGRIND_SAFETY_STOP_MS:
+                    self._context.state = GrinderController.IdleState()
 
         def on_enter(self):
             print("Entering automatic grinding state")
@@ -97,7 +98,7 @@ class GrinderController:
         def run(self):
             if self._context.button_state == GrinderHardware.ButtonState.PRESSED:
                 self._context.state = GrinderController.GrindBeginState()
-            if self._context.hw.should_stop_charging(self._context.voltage):
+            elif self._context.hw.should_stop_charging(self._context.voltage):
                 self._context.state = GrinderController.IdleState()
 
         def on_enter(self):
