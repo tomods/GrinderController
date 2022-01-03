@@ -12,6 +12,8 @@ VOLTAGE_THRESH_LOW = 1000
 VOLTAGE_THRESH_HIGH = 3000
 
 AUTOGRIND_STOP_VOLTAGE_FACTOR = 1.1
+AUTOGRIND_TIMEOUT_MS = 1000
+AUTOGRIND_SAFETY_STOP_MS = 1000 * 60
 
 DEBOUNCE_TIME_MS = 20
 VOLTAGE_FILTER_SIZE = 16
@@ -79,13 +81,13 @@ class GrinderHardware:
     def read_voltage(self):
         return self._filter.filter_voltage(self._adc.read_u16())
 
-    def read_button_state(self):
+    def read_button_state(self) -> ButtonState:
         return self._debounce.debounce_button(self._button.value())
 
-    def set_motor_state(self, val):
+    def set_motor_state(self, val: MotorState):
         self._motor_fet.value(0 if val == GrinderHardware.MotorState.RUNNING else 1)
 
-    def set_jack_state(self, val):
+    def set_jack_state(self, val: JackState):
         self._jack_fet.value(0 if val == GrinderHardware.JackState.ENABLED else 1)
 
     @staticmethod
