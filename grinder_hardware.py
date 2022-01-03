@@ -16,27 +16,32 @@ DEBOUNCE_TIME_MS = 20
 
 
 class GrinderHardware:
+    class Debouncer:
+        def __init__(self):
+            self._prev_button_state = 1
+            self._button_change_time = time.ticks_ms()
+            self._debounced_button_state = 1
+
+        def debounce_button(self, pin_state):
+            if pin_state != self._prev_button_state:
+                self._prev_button_state = pin_state
+                self._button_change_time = time.ticks_ms()
+            elif pin_state != self._debounced_button_state:
+                time_passed = time.ticks_diff(time.ticks_ms(), self._button_change_time)
+                if time_passed > DEBOUNCE_TIME_MS:
+                    self._debounced_button_state = pin_state
+
+            return GrinderController.ButtonState.PRESSED if self._debounced_button_state == 0 \
+                else GrinderController.ButtonState.RELEASED
+
     def __init__(self):
         self._button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
         self._jack_fet = Pin(JACK_FET_PIN, Pin.OUT, value=0)
         self._motor_fet = Pin(MOTOR_FET_PIN, Pin.OUT, value=1)
         self._adc = ADC(Pin(VOLTAGE_PIN))
 
-        self._prev_button_state = 1
-        self._button_change_time = time.ticks_ms()
-        self._debounced_button_state = 1
 
-    def _debounce_button(self, pin_state):
-        if pin_state != self._prev_button_state:
-            self._prev_button_state = pin_state
-            self._button_change_time = time.ticks_ms()
-        elif pin_state != self._debounced_button_state:
-            time_passed = time.ticks_diff(time.ticks_ms(), self._button_change_time)
-            if time_passed > DEBOUNCE_TIME_MS:
-                self._debounced_button_state = pin_state
-
-        return GrinderController.ButtonState.PRESSED if self._debounced_button_state == 0 \
-            else GrinderController.ButtonState.RELEASED
+        self._debounce = GrinderHardware.Debouncer()
 
     @staticmethod
     def _adc_to_voltage(adc_val):
@@ -51,7 +56,7 @@ class GrinderHardware:
         return self._filter_voltage(self._adc.read_u16())
 
     def read_button_state(self):
-        return self._debounce_button(self._button.value())
+        return self._debounce.debounce_button(self._button.value())
 
     def set_motor_state(self, val):
         self._motor_fet.value(0 if val == GrinderController.MotorState.RUNNING else 1)
