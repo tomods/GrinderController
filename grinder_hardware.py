@@ -1,15 +1,16 @@
 from machine import Pin, ADC
 from enum import Enum
-from collections import deque
 import time
+
+from grinder_filter import GrinderFilter
 
 BUTTON_PIN = 3
 JACK_FET_PIN = 1
 MOTOR_FET_PIN = 5
 VOLTAGE_PIN = 26
 
-VOLTAGE_THRESH_LOW = 1000
-VOLTAGE_THRESH_HIGH = 3000
+VOLTAGE_THRESH_LOW = 20000
+VOLTAGE_THRESH_HIGH = 50000
 
 AUTOGRIND_STOP_VOLTAGE_FACTOR = 1.1
 AUTOGRIND_TIMEOUT_MS = 1000
@@ -50,25 +51,6 @@ class GrinderHardware:
             return GrinderHardware.ButtonState.PRESSED if self._debounced_button_state == 0 \
                 else GrinderHardware.ButtonState.RELEASED
 
-    class Filter:
-        def __init__(self):
-            self._voltage_filter_list = deque(maxlen=VOLTAGE_FILTER_SIZE)
-            self._voltage_filtered = 0
-
-        @staticmethod
-        def _adc_to_voltage(adc_val):
-            # FIXME Maybe actually convert?!
-            return adc_val
-
-        def filter_voltage(self, adc_val):
-            # TODO FIXME Take care of the beginning!!
-            oldest = self._voltage_filter_list.popleft()
-            self._voltage_filter_list.append(adc_val)
-            # FIXME Is it actually clever to not use float here?
-            self._voltage_filtered += (adc_val - oldest) // VOLTAGE_FILTER_SIZE
-
-            return self._adc_to_voltage(self._voltage_filtered)
-
     def __init__(self):
         self._button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
         self._jack_fet = Pin(JACK_FET_PIN, Pin.OUT, value=0)
@@ -76,10 +58,15 @@ class GrinderHardware:
         self._voltage_adc = ADC(Pin(VOLTAGE_PIN))
 
         self._debounce = GrinderHardware.Debouncer()
-        self._filter = GrinderHardware.Filter()
+        self._filter = GrinderFilter(VOLTAGE_THRESH_HIGH, VOLTAGE_FILTER_SIZE)
+
+    @staticmethod
+    def _adc_to_voltage(adc_val):
+        # FIXME Maybe actually convert?!
+        return adc_val
 
     def read_voltage(self):
-        return self._filter.filter_voltage(self._voltage_adc.read_u16())
+        return self._adc_to_voltage(self._filter.filter_value(self._voltage_adc.read_u16()))
 
     def read_button_state(self) -> ButtonState:
         return self._debounce.debounce_button(self._button.value())
