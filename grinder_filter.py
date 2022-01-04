@@ -1,6 +1,12 @@
 from collections import deque
 
 
+# Smoothing filter for ADC values to try and get rid of some noise.
+# Just implements SMA as per
+# [https://en.wikipedia.org/w/index.php?title=Moving_average&oldid=1060117206#Simple_moving_average].
+#
+# Tries to optimize for microcontrollers by not using floating point arithmetic.
+# Best suited for values of 16 bit and less -- internally shifts left by 16 bits to avoid rounding/truncation issues.
 class GrinderFilter:
     def __init__(self, initial_value: int, filter_size):
         self._filter_deque = deque(tuple(), filter_size)
