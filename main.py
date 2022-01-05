@@ -17,12 +17,11 @@ def say_hi():
 
 def main():
     say_hi()
+    hw = GrinderHardware()
+    ctrl = GrinderController(hw)
     while True:
         ctrl.run()
 
-
-hw = GrinderHardware()
-ctrl = GrinderController(hw)
 
 if __name__ == '__main__':
     main()
