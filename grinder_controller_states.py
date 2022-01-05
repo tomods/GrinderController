@@ -1,11 +1,12 @@
-from abc import ABC, abstractmethod
+# from abc import ABC, abstractmethod # Not supported by MicroPython!
 import time
 
 from grinder_controller import GrinderController
 from grinder_hardware import GrinderHardware, AUTOGRIND_TIMEOUT_MS, AUTOGRIND_SAFETY_STOP_MS
 
 
-class State(ABC):
+# Should be an ABC
+class State:
     _context = None
 
     @property
@@ -16,11 +17,11 @@ class State(ABC):
     def context(self, c: GrinderController):
         self._context = c
 
-    @abstractmethod
+    # Should be an @abstractmethod
     def run(self) -> None:
         pass
 
-    @abstractmethod
+    # Should be an @abstractmethod
     def on_enter(self) -> None:
         pass
 

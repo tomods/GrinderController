@@ -1,5 +1,5 @@
 from machine import Pin, ADC
-from enum import Enum
+# from enum import Enum # Not supported by MicroPython!
 import time
 
 from grinder_filter import GrinderFilter
@@ -21,15 +21,18 @@ VOLTAGE_FILTER_SIZE = 16
 
 
 class GrinderHardware:
-    class ButtonState(Enum):
+    # Should be an Enum
+    class ButtonState:
         PRESSED = 0
         RELEASED = 1
 
-    class JackState(Enum):
+    # Should be an Enum
+    class JackState:
         ENABLED = 0
         DISABLED = 1
 
-    class MotorState(Enum):
+    # Should be an Enum
+    class MotorState:
         RUNNING = 0
         STOPPED = 1
 
