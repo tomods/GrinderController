@@ -1,8 +1,14 @@
 from grinder_controller_states import *
 from grinder_hardware import GrinderHardware
+import time
 
 
 class GrinderController:
+
+    @staticmethod
+    def log(s: str) -> None:
+        print('{} – {}'.format(time.ticks_ms(), s))
+
     def __init__(self, hw: GrinderHardware):
         self._hw = hw
         self._voltage = 0
@@ -27,13 +33,12 @@ class GrinderController:
         # Always read HW values to allow filtering/debouncing to work better
         self._voltage = self._hw.read_voltage()
         self._button_state = self._hw.read_button_state()
-        if self._run_count % 1000 == 0:
+        if self._run_count % 100 == 0:
             current_time = time.ticks_ms()
             time_passed = time.ticks_diff(current_time, self._last_run_time)
             self._last_run_time = current_time
-            print("Battery voltage: {}; Button state: {}; Time for 1000 runs: {}ms".format(self._voltage,
-                                                                                           self._button_state,
-                                                                                           time_passed))
+            self.log("Battery voltage: {}; Button state: {}; Time for 100 runs: {}ms".format(
+                self._voltage, self._button_state, time_passed))
         self._state.run()
 
     @property

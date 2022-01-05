@@ -33,7 +33,7 @@ class IdleState(State):
             self._context.state = ChargingState()
 
     def on_enter(self):
-        print("Entering idle state")
+        GrinderController.log("Entering idle state")
         self._context.hw.set_jack_state(GrinderHardware.JackState.DISABLED)
         self._context.hw.set_motor_state(GrinderHardware.MotorState.STOPPED)
 
@@ -49,7 +49,7 @@ class GrindBeginState(State):
             self._context.state = ManualGrindState()
 
     def on_enter(self):
-        print("Entering grind begin state")
+        GrinderController.log("Entering grind begin state")
         self._grind_start_time = time.ticks_ms()
         self._context.hw.set_jack_state(GrinderHardware.JackState.DISABLED)
         self._context.hw.set_motor_state(GrinderHardware.MotorState.RUNNING)
@@ -73,7 +73,7 @@ class AutoGrindState(State):
                 self._context.state = IdleState()
 
     def on_enter(self):
-        print("Entering automatic grinding state")
+        GrinderController.log("Entering automatic grinding state")
         self._autogrind_start_voltage = self._context.voltage()
 
 
@@ -83,7 +83,7 @@ class ManualGrindState(State):
             self._context.state = IdleState()
 
     def on_enter(self):
-        print("Entering manual grinding state")
+        GrinderController.log("Entering manual grinding state")
 
 
 class ChargingState(State):
@@ -94,6 +94,6 @@ class ChargingState(State):
             self._context.state = IdleState()
 
     def on_enter(self):
-        print("Entering charging state")
+        GrinderController.log("Entering charging state")
         self._context.hw.set_motor_state(GrinderHardware.MotorState.STOPPED)
         self._context.hw.set_jack_state(GrinderHardware.JackState.ENABLED)
