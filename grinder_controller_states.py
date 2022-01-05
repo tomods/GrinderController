@@ -75,7 +75,7 @@ class AutoGrindState(State):
 
     def on_enter(self):
         GrinderController.log("Entering automatic grinding state")
-        self._autogrind_start_voltage = self._context.voltage()
+        self._autogrind_start_voltage = self._context.voltage
 
 
 class ManualGrindState(State):
