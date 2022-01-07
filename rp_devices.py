@@ -55,7 +55,16 @@ DMA_CHAN_REGS = {
     "CTRL_TRIG_REG":       0x0c|UINT32,
     "CTRL_TRIG":          (0x0c,DMA_CTRL_TRIG_FIELDS)
 }
+
 # General DMA registers
+DMA_SNIFF_CTRL_FIELDS = {
+    "OUT_INV": 11<<BF_POS | 1<<BF_LEN | BFUINT32,
+    "OUT_REV": 10<<BF_POS | 1<<BF_LEN | BFUINT32,
+    "BSWAP":    9<<BF_POS | 1<<BF_LEN | BFUINT32,
+    "CALC":     5<<BF_POS | 4<<BF_LEN | BFUINT32,
+    "DMACH":    1<<BF_POS | 4<<BF_LEN | BFUINT32,
+    "EN":       0<<BF_POS | 1<<BF_LEN | BFUINT32
+}
 DMA_REGS = {
     "INTR":               0x400|UINT32,
     "INTE0":              0x404|UINT32,
@@ -69,7 +78,8 @@ DMA_REGS = {
     "TIMER2":             0x428|UINT32,
     "TIMER3":             0x42c|UINT32,
     "MULTI_CHAN_TRIGGER": 0x430|UINT32,
-    "SNIFF_CTRL":         0x434|UINT32,
+    "SNIFF_CTRL_REG":     0x434|UINT32,
+    "SNIFF_CTRL":        (0x434,DMA_SNIFF_CTRL_FIELDS),
     "SNIFF_DATA":         0x438|UINT32,
     "FIFO_LEVELS":        0x440|UINT32,
     "CHAN_ABORT":         0x444|UINT32
