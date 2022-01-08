@@ -9,6 +9,8 @@ class GrinderController:
         self._button_state = GrinderHardware.ButtonState.RELEASED
         self._state = IdleState()  # init only
         self.state = self._state  # call setter
+        self._run_count = 0
+        self._last_run_time = time.ticks_ms()
 
     @property
     def state(self) -> State:
@@ -21,10 +23,17 @@ class GrinderController:
         self._state.on_enter()
 
     def run(self):
+        self._run_count += 1
         # Always read HW values to allow filtering/debouncing to work better
         self._voltage = self._hw.read_voltage()
         self._button_state = self._hw.read_button_state()
-        print("Battery voltage: {}; Button state: {}".format(self._voltage, self._button_state))
+        if self._run_count % 1000 == 0:
+            current_time = time.ticks_ms()
+            time_passed = time.ticks_diff(current_time, self._last_run_time)
+            self._last_run_time = current_time
+            print("Battery voltage: {}; Button state: {}; Time for 1000 runs: {}ms".format(self._voltage,
+                                                                                           self._button_state,
+                                                                                           time_passed))
         self._state.run()
 
     @property
