@@ -1,10 +1,13 @@
-# GrinderController
+# GrinderController – Work in Progress
 
 Simple project based on the Raspberry Pi Pico and MicroPython to control a battery powered screwdriver, based on the
 current load of its motor. Also controls battery charging.
 
 The goal is to use this setup to power a (high quality) manual coffee grinder until all beans are ground and therefore
 the motor power consumption drops – which is (hopefully) detectable by measuring the battery voltage.
+
+**Status: Very untested** – No hardware available yet, only basic checks done using the
+[rp2040js](https://github.com/wokwi/rp2040js) simulator.
 
 ## Hardware Design
 
