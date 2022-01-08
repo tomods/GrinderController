@@ -3,6 +3,7 @@ from machine import Pin, ADC
 
 from grinder_filter import GrinderFilter
 from grinder_debouncer import GrinderDebouncer
+from RP2040ADC import Rp2040AdcDmaAveraging
 
 BUTTON_PIN = 3
 JACK_FET_PIN = 1
@@ -40,10 +41,14 @@ class GrinderHardware:
         self._button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
         self._jack_fet = Pin(JACK_FET_PIN, Pin.OUT, value=0)
         self._motor_fet = Pin(MOTOR_FET_PIN, Pin.OUT, value=1)
-        self._voltage_adc = ADC(Pin(VOLTAGE_PIN))
+        # self._voltage_adc = ADC(Pin(VOLTAGE_PIN))
+        self._avg_adc = Rp2040AdcDmaAveraging(gpio_pin=VOLTAGE_PIN, dma_chan=0, adc_samples=16)
 
         self._debounce = GrinderDebouncer(initial_value=1, debounce_time_ms=DEBOUNCE_TIME_MS)
-        self._filter = GrinderFilter(initial_value=VOLTAGE_THRESH_HIGH, filter_size=VOLTAGE_FILTER_SIZE)
+        # self._filter = GrinderFilter(initial_value=VOLTAGE_THRESH_HIGH, filter_size=VOLTAGE_FILTER_SIZE)
+
+        # Start first ADC DMA capture, so that the first run() will have something to read
+        self._avg_adc.capture_start()
 
     @staticmethod
     def _adc_to_voltage(adc_val):
@@ -51,7 +56,13 @@ class GrinderHardware:
         return adc_val
 
     def read_voltage(self):
-        return self._adc_to_voltage(self._filter.filter_value(self._voltage_adc.read_u16()))
+        # return self._adc_to_voltage(self._filter.filter_value(self._voltage_adc.read_u16()))
+        # return self._avg_adc.read_u16()
+        value = self._avg_adc.wait_and_read_average_u12()
+
+        # Restart ADC DMA capture for next run()
+        self._avg_adc.capture_start()
+        return value
 
     def read_button_state(self):
         debounced = self._debounce.debounce_button(self._button.value())
