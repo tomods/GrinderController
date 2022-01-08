@@ -4,11 +4,11 @@ import rp_devices as devs
 from machine import ADC
 
 
-# Uses DMA and sniffing to provide fast reading of averaged ADC samples.
-# Caution: Uses uctypes to directly fiddle with DMA and ADC registers.
-#          For ADC, this should not be problematic. For DMA however,
-#          this might clash with other users, including the C Pico SDK,
-#          because the DMA channel is not "claimed" in SDK terms.
+# Uses DMA and sniffing to provide fast reading of averaged ADC samples – specifically for the RP2040.
+# Caution: Uses uctypes to directly fiddle with DMA and ADC registers. For ADC itself, this should not be problematic.
+#          For DMA however, this might clash with other users, including the native Pico SDK, because the DMA channel is
+#          not "claimed" in SDK terms. For now – Micropython v1.17 with Pico SDK 1.3.0 – this could be problematic if
+#          SPI and/or I2S were used. See "grep -i dma_claim".
 class Rp2040AdcDmaAveraging(ADC):
     def __init__(self, gpio_pin=26, dma_chan=0, adc_samples=32):
         super().__init__(gpio_pin)  # initializes ADC and pin/pad
