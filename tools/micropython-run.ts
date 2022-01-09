@@ -4,10 +4,13 @@
 import { RP2040 } from '../src';
 import { GDBTCPServer } from '../src/gdb/gdb-tcp-server';
 import { USBCDC } from '../src/usb/cdc';
+import { GPIOPinState, GPIOPinListener } from '../src/gpio-pin'
 import { ConsoleLogger, LogLevel } from '../src/utils/logging';
 import { bootromB1 } from './bootrom';
-import { loadUF2 } from './load-uf2';
+import { loadUF2, loadMicropythonFlashImage } from './load-flash';
 import { hrtime } from 'process';
+// import { TaskTimer } from 'tasktimer';
+const NanoTimer = require('nanotimer');
 
 const fs = require('fs');
 const ws = fs.createWriteStream('/tmp/timelog');
@@ -16,24 +19,37 @@ const mcu = new RP2040();
 const buttonGpio = mcu.gpio[3];
 buttonGpio.setInputValue(true);
 
+const ledGpio = mcu.gpio[25];
+ledGpio.addListener((state: GPIOPinState, oldState: GPIOPinState) => {
+  console.log(`rp2040js: LED change from ${oldState} to ${state}`);
+});
+
 const adc = mcu.adc;
 let adcChannelValues = [0, 0, 0, 3456, 0];
+let captureStartedForChannel = -1;
 let lasttime = hrtime.bigint();
-adc.onADCRead = (channel) => {
-  mcu.clock.createTimer(adc.sampleTime, () => {
-    const now = hrtime.bigint();
-    const took = now - lasttime;
-    lasttime = now;
-    ws.write(took.toString() + '\n');
-
+const timer = new NanoTimer();
+timer.setInterval(() => {
+  if (captureStartedForChannel >= 0) {
+    const channel = captureStartedForChannel;
+    captureStartedForChannel = -1;
     adc.completeADCRead(adcChannelValues[channel], false);
+
+    // const now = hrtime.bigint();
+    // const took = now - lasttime;
+    // lasttime = now;
+    // ws.write(took.toString() + '\n');
   }
-  );
-};
+}, '', '2u');
+adc.onADCRead = (channel) => { captureStartedForChannel = channel };
 
 mcu.loadBootrom(bootromB1);
 mcu.logger = new ConsoleLogger(LogLevel.Error);
 loadUF2('rp2-pico-20210902-v1.17.uf2', mcu);
+
+if (fs.existsSync('littlefs.img')) {
+  loadMicropythonFlashImage('littlefs.img', mcu);
+}
 
 // const gdbServer = new GDBTCPServer(mcu, 3333);
 // console.log(`RP2040 GDB Server ready! Listening on port ${gdbServer.port}`);
