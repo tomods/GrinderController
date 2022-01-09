@@ -69,9 +69,6 @@ class Rp2040AdcDmaAveraging(ADC):
         self._dma_chan.CTRL_TRIG.EN = 0
         #  Consider CS.EN = 0 to save power – but does it need to be reconfigured after?
 
-        # DMA sniffing/summing does not work in rp2040js yet, so cannot use
-        average = sum(self._adc_buff) // self._adc_samples
-        # sniffavg = self._dma.SNIFF_DATA // self._adc_samples
-        # print("avg {}, sniffavg {}".format(average, sniffavg))
+        sniffed_avg = self._dma.SNIFF_DATA // self._adc_samples
 
-        return average
+        return sniffed_avg
