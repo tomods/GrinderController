@@ -8,7 +8,8 @@ files = ['grinder_controller.py',
          'RP2040ADC.py',
          'main.py']
 
-output_image = 'GrinderController.littlefs.img'
+# Put image to output folder, which is symlinked to rp2040js for direct starting
+output_image = 'output/littlefs.img'
 
 lfs = LittleFS(block_size=4096, block_count=352, prog_size=256)
 
