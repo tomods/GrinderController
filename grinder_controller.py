@@ -1,4 +1,4 @@
-from grinder_controller_states import *
+import grinder_controller_states as states
 from grinder_hardware import GrinderHardware
 import time
 
@@ -13,17 +13,17 @@ class GrinderController:
         self._hw = hw
         self._voltage = 0
         self._button_state = GrinderHardware.ButtonState.RELEASED
-        self._state = IdleState()  # init only
+        self._state = states.IdleState()  # init only
         self.state = self._state  # call setter
         self._run_count = 0
         self._last_run_time = time.ticks_ms()
 
     @property
-    def state(self) -> State:
+    def state(self) -> states.State:
         return self._state
 
     @state.setter
-    def state(self, state: State):
+    def state(self, state: states.State):
         self._state = state
         self._state.context = self
         self._state.on_enter()

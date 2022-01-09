@@ -1,7 +1,7 @@
 # from abc import ABC, abstractmethod # Not supported by MicroPython!
 import time
 
-from grinder_controller import GrinderController
+import grinder_controller as ctrl
 from grinder_hardware import GrinderHardware, AUTOGRIND_TIMEOUT_MS, AUTOGRIND_SAFETY_STOP_MS
 
 
@@ -10,11 +10,11 @@ class State:
     _context = None
 
     @property
-    def context(self) -> GrinderController:
+    def context(self) -> ctrl.GrinderController:
         return self._context
 
     @context.setter
-    def context(self, c: GrinderController):
+    def context(self, c: ctrl.GrinderController):
         self._context = c
 
     # Should be an @abstractmethod
@@ -34,7 +34,7 @@ class IdleState(State):
             self._context.state = ChargingState()
 
     def on_enter(self):
-        GrinderController.log("Entering idle state")
+        ctrl.GrinderController.log("Entering idle state")
         self._context.hw.set_jack_state(GrinderHardware.JackState.DISABLED)
         self._context.hw.set_motor_state(GrinderHardware.MotorState.STOPPED)
 
@@ -50,7 +50,7 @@ class GrindBeginState(State):
             self._context.state = ManualGrindState()
 
     def on_enter(self):
-        GrinderController.log("Entering grind begin state")
+        ctrl.GrinderController.log("Entering grind begin state")
         self._grind_start_time = time.ticks_ms()
         self._context.hw.set_jack_state(GrinderHardware.JackState.DISABLED)
         self._context.hw.set_motor_state(GrinderHardware.MotorState.RUNNING)
@@ -74,7 +74,7 @@ class AutoGrindState(State):
                 self._context.state = IdleState()
 
     def on_enter(self):
-        GrinderController.log("Entering automatic grinding state")
+        ctrl.GrinderController.log("Entering automatic grinding state")
         self._autogrind_start_voltage = self._context.voltage
 
 
@@ -84,7 +84,7 @@ class ManualGrindState(State):
             self._context.state = IdleState()
 
     def on_enter(self):
-        GrinderController.log("Entering manual grinding state")
+        ctrl.GrinderController.log("Entering manual grinding state")
 
 
 class ChargingState(State):
@@ -95,6 +95,6 @@ class ChargingState(State):
             self._context.state = IdleState()
 
     def on_enter(self):
-        GrinderController.log("Entering charging state")
+        ctrl.GrinderController.log("Entering charging state")
         self._context.hw.set_motor_state(GrinderHardware.MotorState.STOPPED)
         self._context.hw.set_jack_state(GrinderHardware.JackState.ENABLED)
