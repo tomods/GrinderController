@@ -1,7 +1,7 @@
-from machine import Pin, ADC
+from machine import Pin
 # from enum import Enum # Not supported by MicroPython!
 
-from grinder_filter import GrinderFilter
+# from grinder_filter import GrinderFilter
 from grinder_debouncer import GrinderDebouncer
 from RP2040ADC import Rp2040AdcDmaAveraging
 
