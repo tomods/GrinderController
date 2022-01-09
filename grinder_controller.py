@@ -7,7 +7,8 @@ class GrinderController:
 
     @staticmethod
     def log(s: str) -> None:
-        print('{} – {}'.format(time.ticks_ms(), s))
+        if __debug__:
+            print('{} – {}'.format(time.ticks_us(), s))
 
     def __init__(self, hw: GrinderHardware):
         self._hw = hw
@@ -16,7 +17,7 @@ class GrinderController:
         self._state = states.IdleState()  # init only
         self.state = self._state  # call setter
         self._run_count = 0
-        self._last_run_time = time.ticks_ms()
+        self._last_run_time = time.ticks_us()
 
     @property
     def state(self) -> states.State:
@@ -34,10 +35,10 @@ class GrinderController:
         self._voltage = self._hw.read_voltage()
         self._button_state = self._hw.read_button_state()
         if self._run_count % 10 == 0:
-            current_time = time.ticks_ms()
+            current_time = time.ticks_us()
             time_passed = time.ticks_diff(current_time, self._last_run_time)
             self._last_run_time = current_time
-            self.log("Battery voltage: {}; Button state: {}; Time for 10 runs: {}ms".format(
+            self.log("Battery voltage: {}; Button state: {}; Time for 10 runs: {}us".format(
                 self._voltage, self._button_state, time_passed))
         self._state.run()
 
