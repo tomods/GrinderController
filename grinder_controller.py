@@ -34,11 +34,11 @@ class GrinderController:
         # Always read HW values to allow filtering/debouncing to work better
         self._voltage = self._hw.read_voltage()
         self._button_state = self._hw.read_button_state()
-        if self._run_count % 10 == 0:
+        if self._run_count % 1000 == 0:
             current_time = time.ticks_us()
             time_passed = time.ticks_diff(current_time, self._last_run_time)
             self._last_run_time = current_time
-            self.log("Battery voltage: {}; Button state: {}; Time for 10 runs: {}us".format(
+            self.log("Battery voltage: {}; Button state: {}; Time for 1000 runs: {}us".format(
                 self._voltage, self._button_state, time_passed))
         self._state.run()
 

@@ -6,8 +6,8 @@ from grinder_debouncer import GrinderDebouncer
 from RP2040ADC import Rp2040AdcDmaAveraging
 
 BUTTON_PIN = 3
-JACK_FET_PIN = 1
 MOTOR_FET_PIN = 5
+JACK_FET_PIN = 6
 VOLTAGE_PIN = 29  # measuring VSYS/3 on Pico
 
 VOLTAGE_THRESH_LOW = 1000
@@ -39,8 +39,8 @@ class GrinderHardware:
 
     def __init__(self):
         self._button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
-        self._jack_fet = Pin(JACK_FET_PIN, Pin.OUT, value=0)
-        self._motor_fet = Pin(MOTOR_FET_PIN, Pin.OUT, value=1)
+        self._jack_switch = Pin(JACK_FET_PIN, Pin.OUT, value=0)  # Default: Connected
+        self._motor_switch = Pin(MOTOR_FET_PIN, Pin.OUT, value=0)  # Default: Motor off
         # self._voltage_adc = ADC(Pin(VOLTAGE_PIN))
         self._avg_adc = Rp2040AdcDmaAveraging(gpio_pin=VOLTAGE_PIN, dma_chan=0, adc_samples=16)
 
@@ -69,10 +69,10 @@ class GrinderHardware:
         return GrinderHardware.ButtonState.PRESSED if debounced == 0 else GrinderHardware.ButtonState.RELEASED
 
     def set_motor_state(self, val: MotorState):
-        self._motor_fet.value(0 if val == GrinderHardware.MotorState.RUNNING else 1)
+        self._motor_switch.value(1 if val == GrinderHardware.MotorState.RUNNING else 0)
 
     def set_jack_state(self, val: JackState):
-        self._jack_fet.value(0 if val == GrinderHardware.JackState.ENABLED else 1)
+        self._jack_switch.value(0 if val == GrinderHardware.JackState.ENABLED else 1)
 
     @staticmethod
     def should_stop_charging(current_voltage):
