@@ -6,7 +6,8 @@ current load of its motor. Also controls battery charging.
 The goal is to use this setup to power a (high quality) manual coffee grinder until all beans are ground and therefore
 the motor power consumption drops – which is (hopefully) detectable by measuring the battery voltage.
 
-**Status: Very untested** – No hardware available yet, only basic checks done using the
+**Status: Working basically** – Hardware has been built, but mechanical stability is problematic 😬. Software seems to
+work fine so far – but automatic grind stopping is WIP. Additional basic checks have been done using the
 [rp2040js](https://github.com/wokwi/rp2040js) simulator.
 
 ## Hardware Design
@@ -24,7 +25,9 @@ The Pico is powered from the battery via a switch and a Schottky diode.
 For voltage sensing, the Pico's on-board VSYS measurement circuit connected to ADC3 will be used. This (hopefully)
 avoids some headaches regarding the Pico's ADC peculiarities.
 
-See also the hw_design files in this repo.
+See also the hw_design files in this repo. Note that the latest HW design (hw_design_v3.jpeg) does contain an error in
+the power jack disconnection circuitry. The P-Channel MOSFET disconnecting the "Rest" from the power jack has been
+replaced by the circuit described (and simulated) in transistortest.asc.
 
 ## Measuring the Voltage
 
