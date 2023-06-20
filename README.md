@@ -27,7 +27,8 @@ avoids some headaches regarding the Pico's ADC peculiarities.
 
 See also the hw_design files in this repo. Note that the latest HW design (hw_design_v3.jpeg) does contain an error in
 the power jack disconnection circuitry. The P-Channel MOSFET disconnecting the "Rest" from the power jack has been
-replaced by the circuit described (and simulated) in transistortest.asc.
+replaced by the circuit described (and simulated) in transistortest.asc. This enables the high-side switch to be
+normally closed – so that the battery can be charged even when the Pico is unpowered.
 
 ## Measuring the Voltage
 
